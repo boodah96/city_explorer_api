@@ -21,6 +21,25 @@ server.get('/location',(req,res)=>{
     res.send(location)
 })
 
+server.get('/weather',(req,res)=>{
+    const wetherFile=require('./data/weather.json');
+    const weathData=wetherFile.data;
+    let weather=[];
+    weathData.forEach((element)=>{
+        const todayWeather= new Weather(element);
+        weather.push(todayWeather);
+
+    })
+    res.send(weather);
+})
+
+
+
+function Weather(obj){
+    this.forecast=obj.weather.description;
+    this.time=obj.datetime;
+}
+
 function Location(locPage){
     this.search_query='Lynnwood';
     this.formatted_query=locPage[0].display_name;
