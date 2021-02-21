@@ -33,6 +33,10 @@ server.get('/weather',(req,res)=>{
     res.send(weather);
 })
 
+server.get('*',(req,res)=>{
+    res.status(500).send('Sorry, something went wrong')
+})
+
 
 
 function Weather(obj){
