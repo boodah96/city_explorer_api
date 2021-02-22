@@ -36,7 +36,6 @@ const server= express();
         .then(data=>{
             
             const location=new Location(cityName,data.body[0]);
-            console.log(location);
 
             res.send(location);
 
@@ -45,16 +44,32 @@ const server= express();
       
     }
     
-    function weatherHandler(eq,res){
-        const wetherFile=require('./data/weather.json');
-        const weathData=wetherFile.data;
-        let weather= weathData.map((element)=>{
-            const todayWeather= new Weather(element);
-            return todayWeather;
-            
-        });
+    
+    function weatherHandler(req,res){
+        const lat=req.query.latitude;
+        const lon=req.query.longitude;
+
+
+        let key =process.env.WEATHER_KEY;
+
+        let url=`https://api.weatherbit.io/v2.0/forecast/daily?lat=${lat}&lon=${lon}&key=${key}`
+        superagent.get(url)
+        .then(element=>{
+
+            const weathData=element.body.data;
+            let weather= weathData.map((element)=>{
+                const todayWeather= new Weather(element);
+                return todayWeather;
+                
+            });      
+            console.log(weather);   
+               res.send(weather);
+
+        })
+
+     
         
-        res.send(weather);
+        
     }
     
     function errorHandler (req,res){
@@ -69,7 +84,7 @@ const server= express();
     //Constuctors
     function Weather(obj){
         this.forecast=obj.weather.description;
-        this.time=obj.datetime;
+        this.time= obj.datetime;
        }
        
        function Location(city,locPage){
