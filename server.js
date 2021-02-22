@@ -34,7 +34,11 @@ server.get('/weather',(req,res)=>{
 })
 
 server.get('*',(req,res)=>{
-    res.status(500).send('Sorry, something went wrong')
+    const err=  {
+        status: 500,
+        responseText: "Sorry, something went wrong"
+      }
+    res.send(err);
 })
 
 
