@@ -24,12 +24,13 @@ server.get('/location',(req,res)=>{
 server.get('/weather',(req,res)=>{
     const wetherFile=require('./data/weather.json');
     const weathData=wetherFile.data;
-    let weather=[];
-    weathData.forEach((element)=>{
+    let weather= weathData.map((element)=>{
         const todayWeather= new Weather(element);
-        weather.push(todayWeather);
+        return todayWeather;
 
-    })
+    });
+    console.log(weather);
+   
     res.send(weather);
 })
 
