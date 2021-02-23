@@ -12,7 +12,7 @@ server.use(cors());
 
 const pg = require('pg');
 // connect pgserver+express server
-const client =  new pg.Client( process.env.DATABASE_URL);
+const client = new pg.Client({ connectionString: process.env.DATABASE_URL,   ssl: { rejectUnauthorized: false } });
 
 
 
@@ -38,7 +38,7 @@ server.get('/people', (req, res) => {
 
 
 
-// server.get('*', errorHandler)
+server.get('*', errorHandler)
 
 
 
