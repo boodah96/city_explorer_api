@@ -12,8 +12,8 @@ server.use(cors());
 
 const pg = require('pg');
 // connect pgserver+express server
-const client = new pg.Client({ connectionString: process.env.DATABASE_URL,   ssl: { rejectUnauthorized: false } });
-
+// const client = new pg.Client({ connectionString: process.env.DATABASE_URL,   ssl: { rejectUnauthorized: false } });
+const client = new pg.Client(process.env.DATABASE_URL)
 
 
 const PORT = process.env.PORT || 3050;
@@ -25,16 +25,7 @@ server.get('/location', locationHandler);
 
 server.get('/weather', weatherHandler)
 
-server.get('/people', (req, res) => {
-    let SQL = `SELECT * FROM locations;`;
-    client.query(SQL)
-        .then(results => {
-            res.send(results.rows);
-        })
-        .catch((error) => {
-            res.send('pppppppppppp', error.message)
-        })
-})
+server.get('/parks', parkHandler)
 
 
 
@@ -44,10 +35,30 @@ server.get('*', errorHandler)
 
 //Function definition
 
+
 function handleRout(req, res) {
     res.send('pass rout')
 };
 
+function parkHandler(req, res) {
+const city=req.query.search_query;
+console.log(city);
+let key=process.env.PARK_KEY;
+let url=`https://developer.nps.gov/api/v1/parks?q=${city}&limit=6&api_key=${key}`;
+superagent.get(url)
+.then(result=>{
+    let parkData=result.body.data
+    let park=parkData.map(value=>{
+   return new Park(value);
+    }
+
+    );
+    res.send(park);
+})
+.catch(() => {
+    res.send(errorHandler);
+});
+}
 
 
 function locationHandler(req, res) {
@@ -58,8 +69,7 @@ function locationHandler(req, res) {
 
     client.query(SQL)
         .then(results => {
-            console.log(results.rows);
-            // res.send(results.rows);
+            
             sqlV = results.rows;
             allCity = sqlV.map(element => {
                 return element.search_query;
@@ -67,6 +77,7 @@ function locationHandler(req, res) {
 
             if (!allCity.includes(cityName)) {
                 let key = process.env.LOCATION_KEY;
+                
                 let url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${cityName}&format=json`
                 superagent.get(url)
                     .then(data => {
@@ -83,7 +94,7 @@ function locationHandler(req, res) {
 
 
 
-                            console.log('from API')
+                        console.log('from API')
 
                         res.send(location);
                     });
@@ -91,23 +102,15 @@ function locationHandler(req, res) {
             } else {
                 let SQL = `SELECT * FROM locations WHERE search_query = '${cityName}';`;
                 client.query(SQL)
-                .then(result=>{
-                    console.log('from dataBase')
-                    res.send(result.rows[0]);
-                    
-                })
+                    .then(result => {
+                        console.log('from dataBase')
+                        res.send(result.rows[0]);
+
+                    })
 
 
             }
-
-
-
-
-
-
         })
-
-
 }
 
 
@@ -157,6 +160,13 @@ function Location(city, locPage) {
     this.formatted_query = locPage.display_name;
     this.latitude = locPage.lat;
     this.longitude = locPage.lon;
+}
+function Park(data){
+    this.name=data.fullName;
+    this.address=`"${data.addresses[0].line1}" "${data.addresses[0].city}" "${data.addresses[0].stateCode}" "${data.addresses[0].postalCode}"`;
+    this.fee=data.entranceFees[0].cost;
+    this.url=data.url;
+
 }
 client.connect()
     .then(() => {
